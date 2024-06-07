@@ -1,0 +1,154 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{ page_title }}{% endblock page_title %}
+
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <div class="card card-dark">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ page_title }}</h3>
+                    </div>
+
+                    <div class="table card-body">
+                        <!-- Status Filter Dropdown -->
+                        <label for="statusFilter">Filter by Status:</label>
+                        <select id="statusFilter" class="form-control">
+                            <option value="all">All</option>
+                            <option value="0">Pending</option>
+                            <option value="-1">Rejected</option>
+                            <option value="1">Approved</option>
+                        </select>
+
+                        <br>
+
+                        <!-- Leave History Table -->
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Teacher's Name</th>
+                                    <th>Message</th>
+                                    <th>Leave Start Date, Day</th>
+                                    <th>Leave End Date, Day</th>
+                                    <th>Submitted On</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaveTableBody">
+                                {% for leave in allLeave %}
+                                <tr data-status="{{ leave.status }}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ leave.staff }}</td>
+                                    <td>{{ leave.message }}</td>
+                                    <td>{{ leave.start_date }} , {{ leave.leaveStart_day }}</td>
+                                    <td>{{ leave.end_date }} , {{ leave.leaveEnd_day }}</td>
+                                    <td>{{ leave.created_at }}</td>
+                                    <td>
+                                        {% if leave.status == 0 %}
+                                        <button data-toggle="modal" data-target="#reply_modal" value="{{ leave.id }}" class="btn btn-success reply_open_modal">Reply</button>
+                                        {% elif leave.status == -1 %}
+                                        <span class="badge badge-danger">Rejected</span>
+                                        {% else %}
+                                        <span class="badge badge-success">Approved</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Reply Modal -->
+<div class="modal fade" id="reply_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel"></h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="id">
+                <p>Reply To <span id="reply_name"></span>'s Leave Request</p>
+                <select id="reply_leave_status" class="form-control">
+                    <option value="">-- Select --</option>
+                    <option value="1">Approve</option>
+                    <option value="-1">Reject</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button id="reply_btn" class="btn btn-success btn-block">Submit</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+{% endblock content %}
+
+{% block custom_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Filter by Status
+        $('#statusFilter').on('change', function() {
+            var selectedStatus = $(this).val();
+            $('#leaveTableBody tr').each(function() {
+                var rowStatus = $(this).data('status');
+                if (selectedStatus === 'all' || rowStatus == selectedStatus) {
+                    $(this).show(); // Show rows matching the selected status or show all
+                } else {
+                    $(this).hide(); // Hide rows that do not match the selected status
+                }
+            });
+        });
+
+        // Open Reply Modal
+        $(".reply_open_modal").click(function() {
+            var id = $(this).val();
+            var name = $(this).closest("tr").find("td:eq(1)").text();
+            $("#reply_name").text(name);
+            $("#id").val(id);
+        });
+
+        // Submit Reply
+        $("#reply_btn").on("click", function() {
+            var id = $("#id").val();
+            var status = $("#reply_leave_status").val();
+            if (status == '1' || status == '-1') {
+                $.ajax({
+                    url: "{% url 'view_staff_leave' %}",
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        status: status
+                    },
+                    success: function(response) {
+                        if (response == "True") {
+                            alert("Leave Response Has Been Saved!");
+                            location.reload();
+                        } else {
+                            alert("Reply Could Not Be Sent");
+                        }
+                    },
+                    error: function() {
+                        alert("Error Occurred.");
+                    }
+                });
+            } else {
+                alert("Choose a valid response");
+            }
+        });
+    });
+</script>
+{% endblock custom_js %}

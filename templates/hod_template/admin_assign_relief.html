@@ -1,0 +1,65 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{ page_title }}{% endblock page_title %}
+
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <div class="card card-dark">
+                    <div class="card-header">
+                        <h3 class="card-title">Absent Teachers</h3>
+                    </div>
+                    <!-- timetable based on selected absent teacher -->
+                    <div class="card-body">
+                        <table id="example2" class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <!--th>#</th-->
+                                    <th>Teacher's name</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Day</th>
+                                    <th>Period</th>
+                                    <th>Subject</th>
+                                    <th>Class</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leave in allLeave %}
+                                    {% for timetable in leave.staff.timetable_set.all %}
+                                        {% if timetable.timetable_day in leave.leaveStart_day or timetable.timetable_day in leave.leaveEnd_day %}
+                                            <tr>
+                                                <!--td>{{ forloop.counter }}</td-->
+                                                <td>{{ leave.staff }}</td>
+                                                <td>{{ leave.start_date }}</td>
+                                                <td>{{ leave.end_date }}</td>
+                                                <td>{{ timetable.timetable_day }}</td>
+                                                <td>{{ timetable.period }}</td>
+                                                <td>{{ timetable.subject.name }}</td>
+                                                <td>{{ timetable.course.name }}</td>
+                                                <td>
+                                                    <a href="{% url 'select_assign_relief' leave.id %}" class="btn btn-info">Assign Relief</a>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="9">No timetables found for this staff.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>                
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}
