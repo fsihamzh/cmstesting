@@ -1,0 +1,45 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{ page_title }}{% endblock page_title %}
+
+{% block content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-dark">
+                    <div class="card-header">
+                        <h3 class="card-title">Available Teachers for Relief</h3>
+                    </div>
+                    <div class="card-body">
+                        <table id="example2" class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Teacher's name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for teacher in available_teachers %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ teacher.first_name }} {{ teacher.last_name }}</td>
+                                        <td>
+                                            <a href="{% url 'assign_teacher' leave.id teacher.id %}" class="btn btn-info">Assign</a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3">No available teachers found for the specified period.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>                
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
